@@ -77,6 +77,73 @@ pub fn shared_style_profile_path() -> PathBuf {
     config_dir().join("style-profile.json")
 }
 
+/// UI-Sprache (`de` / `en`), gemeinsam für Editor und Word-Add-in.
+#[must_use]
+pub fn ui_language_path() -> PathBuf {
+    config_dir().join("ui-language")
+}
+
+/// Liest die UI-Sprache; ungültig/fehlend → `None`.
+#[must_use]
+pub fn load_ui_language() -> Option<String> {
+    let text = fs::read_to_string(ui_language_path()).ok()?;
+    let lang = text.lines().next().unwrap_or("").trim().to_ascii_lowercase();
+    matches!(lang.as_str(), "de" | "en").then_some(lang)
+}
+
+/// Speichert die UI-Sprache (`de` oder `en`).
+pub fn save_ui_language(lang: &str) -> std::io::Result<()> {
+    let normalized = lang.trim().to_ascii_lowercase();
+    if normalized != "de" && normalized != "en" {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "ui-language must be de or en",
+        ));
+    }
+    let path = ui_language_path();
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(path, format!("{normalized}\n"))
+}
+
+/// Ribbon-Platzierung (`home` / `ownTab`), gemeinsam für Editor und Word-Add-in.
+#[must_use]
+pub fn ribbon_placement_path() -> PathBuf {
+    config_dir().join("ribbon-placement")
+}
+
+/// Liest die Ribbon-Platzierung; ungültig/fehlend → `None` (Add-in default: `home`).
+#[must_use]
+pub fn load_ribbon_placement() -> Option<String> {
+    let text = fs::read_to_string(ribbon_placement_path()).ok()?;
+    let raw = text.lines().next().unwrap_or("").trim().to_ascii_lowercase();
+    match raw.as_str() {
+        "home" => Some("home".to_string()),
+        "owntab" | "tab" | "mdoc" | "mdword" => Some("ownTab".to_string()),
+        _ => None,
+    }
+}
+
+/// Speichert die Ribbon-Platzierung (`home` oder `ownTab`).
+pub fn save_ribbon_placement(placement: &str) -> std::io::Result<()> {
+    let normalized = match placement.trim().to_ascii_lowercase().as_str() {
+        "home" => "home",
+        "owntab" | "tab" | "mdoc" | "mdword" => "ownTab",
+        _ => {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "ribbon-placement must be home or ownTab",
+            ));
+        }
+    };
+    let path = ribbon_placement_path();
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(path, format!("{normalized}\n"))
+}
+
 /// Datei mit dem absoluten Pfad der im Editor gewählten Word-Vorlage (eine Zeile).
 #[must_use]
 pub fn shared_template_path_file() -> PathBuf {

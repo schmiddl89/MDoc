@@ -1,9 +1,10 @@
 # Rust
 /target/
 
-# IDE / OS
+# IDE / OS / Cursor local rules
 /.idea/
 /.vscode/
+/.cursor/
 *.user
 *.suo
 *.pdb

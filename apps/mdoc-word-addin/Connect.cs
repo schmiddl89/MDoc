@@ -79,9 +79,21 @@ namespace MdocWordAddIn
             try
             {
                 var placement = ReadRibbonPlacement();
-                var resource = placement == "ownTab"
-                    ? "MdocWordAddIn.Ribbon.OwnTab.xml"
-                    : "MdocWordAddIn.Ribbon.Home.xml";
+                var lang = UiText.Language;
+                string resource;
+                if (placement == "ownTab")
+                {
+                    resource = lang == "de"
+                        ? "MdocWordAddIn.Ribbon.OwnTab.xml"
+                        : "MdocWordAddIn.Ribbon.OwnTab.en.xml";
+                }
+                else
+                {
+                    resource = lang == "de"
+                        ? "MdocWordAddIn.Ribbon.Home.xml"
+                        : "MdocWordAddIn.Ribbon.Home.en.xml";
+                }
+
                 var stream = Assembly.GetExecutingAssembly()
                     .GetManifestResourceStream(resource);
                 if (stream == null)
@@ -94,7 +106,7 @@ namespace MdocWordAddIn
                 using (var reader = new StreamReader(stream))
                 {
                     var xml = reader.ReadToEnd();
-                    Log("GetCustomUI placement=" + placement);
+                    Log("GetCustomUI placement=" + placement + " lang=" + lang);
                     return xml;
                 }
             }
@@ -191,7 +203,7 @@ namespace MdocWordAddIn
                 try
                 {
                     System.Windows.Forms.MessageBox.Show(
-                        "MDoc-Aktion fehlgeschlagen:\n" + ex.Message,
+                        UiText.ActionFailed + ex.Message,
                         "MDoc",
                         System.Windows.Forms.MessageBoxButtons.OK,
                         System.Windows.Forms.MessageBoxIcon.Warning);
@@ -207,8 +219,7 @@ namespace MdocWordAddIn
             var exe = ResolveMdocExe();
             if (exe == null)
             {
-                throw new InvalidOperationException(
-                    "mdoc-desktop.exe wurde nicht gefunden. Bitte MDoc erneut installieren.");
+                throw new InvalidOperationException(UiText.DesktopExeMissing);
             }
 
             Process.Start(new ProcessStartInfo

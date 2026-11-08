@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "MDoc",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "identifier": "de.mdoc.desktop",
   "build": {
     "frontendDist": "../dist",
@@ -30,8 +30,8 @@
     "targets": [
       "nsis"
     ],
-    "shortDescription": "Markdown und Microsoft Word zusammenbringen",
-    "longDescription": "Markdown-Editor mit DOCX-Export und geplanter Microsoft-Word-Integration.",
+    "shortDescription": "Bring Markdown and Microsoft Word together",
+    "longDescription": "Markdown editor with DOCX export and Microsoft Word integration.",
     "fileAssociations": [
       {
         "ext": [
@@ -40,7 +40,7 @@
           "mdown"
         ],
         "name": "MDoc.markdown",
-        "description": "Markdown-Dokument",
+        "description": "Markdown document",
         "role": "Editor"
       }
     ],
@@ -58,6 +58,10 @@
     "windows": {
       "nsis": {
         "installMode": "currentUser",
+        "languages": [
+          "English"
+        ],
+        "displayLanguageSelector": false,
         "template": "./windows/installer.nsi",
         "installerHooks": "./windows/nsis-hooks.nsh"
       }

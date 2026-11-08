@@ -108,10 +108,7 @@ namespace MdocWordAddIn
                 return parts;
             }
 
-            throw new InvalidOperationException(
-                "Die Word-Vorlage ist gesperrt und styles/numbering konnten weder aus der "
-                + "Datei noch über Word gelesen werden.\n\n"
-                + "Datei: " + templatePath);
+            throw new InvalidOperationException(UiText.TemplateLocked(templatePath));
         }
 
         internal static bool TryResolveTemplatePath(out string templatePath)
@@ -154,15 +151,10 @@ namespace MdocWordAddIn
             {
                 if (!File.Exists(TemplatePathFile))
                 {
-                    throw new InvalidOperationException(
-                        "Keine Word-Vorlage hinterlegt.\n\n"
-                        + "Bitte im MDoc-Editor eine .dotx/.dotm wählen und das "
-                        + "Formatvorlagen-Mapping speichern.");
+                    throw new InvalidOperationException(UiText.TemplateNotConfigured);
                 }
 
-                throw new InvalidOperationException(
-                    "Hinterlegte Vorlage nicht gefunden oder ungültig.\n\n"
-                    + "Bitte im MDoc-Editor die Vorlage erneut wählen und das Mapping speichern.");
+                throw new InvalidOperationException(UiText.TemplateInvalid);
             }
 
             return path;

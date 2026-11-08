@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="OnRibbonLoad">
+  <ribbon>
+    <tabs>
+      <tab idMso="TabHome">
+        <group id="mdocGroupHome" label="MDoc">
+          <button
+            id="btnInsertMarkdown"
+            label="Insert"
+            screentip="Insert Markdown from the clipboard"
+            supertip="Converts Markdown from the clipboard via MDoc and inserts the content into Word in blocks."
+            size="large"
+            onAction="OnInsertMarkdown"
+            imageMso="Paste"
+          />
+          <button
+            id="btnCopyMarkdown"
+            label="Copy"
+            screentip="Copy selection as Markdown"
+            supertip="Converts the Word selection to Markdown via MDoc and places it on the clipboard."
+            size="large"
+            onAction="OnCopyMarkdown"
+            imageMso="Copy"
+          />
+          <button
+            id="btnMapStyles"
+            label="Styles"
+            screentip="Map Markdown roles to Word styles"
+            supertip="Opens the shared MDoc mapping dialog."
+            size="large"
+            onAction="OnMapStyles"
+            imageMso="StylesPane"
+          />
+          <button
+            id="btnOpenEditor"
+            label="Editor"
+            screentip="Start the MDoc editor"
+            size="large"
+            onAction="OnOpenEditor"
+            imageMso="FileOpen"
+          />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>

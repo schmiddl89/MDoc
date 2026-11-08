@@ -18,7 +18,7 @@ namespace MdocWordAddIn
         {
             if (word == null)
             {
-                throw new InvalidOperationException("Word-Anwendung ist nicht verfügbar.");
+                throw new InvalidOperationException(UiText.WordUnavailable);
             }
 
             var markdown = Clipboard.GetText(TextDataFormat.UnicodeText);
@@ -28,13 +28,12 @@ namespace MdocWordAddIn
             }
             if (string.IsNullOrWhiteSpace(markdown))
             {
-                throw new InvalidOperationException(
-                    "Zwischenablage enthält keinen Text (Markdown erwartet).");
+                throw new InvalidOperationException(UiText.ClipboardEmpty);
             }
 
             if (word.ActiveDocument == null)
             {
-                throw new InvalidOperationException("Kein aktives Word-Dokument.");
+                throw new InvalidOperationException(UiText.NoActiveDocument);
             }
 
             var templateParts = TemplateStylesCache.LoadParts(word);
@@ -49,7 +48,7 @@ namespace MdocWordAddIn
                 MdocCli.ConvertMarkdownToDocx(mdPath, docxPath);
                 if (!File.Exists(docxPath))
                 {
-                    throw new InvalidOperationException("DOCX-Konvertierung lieferte keine Datei.");
+                    throw new InvalidOperationException(UiText.DocxConversionEmpty);
                 }
 
                 string flatOpc = DocxFlatOpc.FromDocxFile(
@@ -71,13 +70,13 @@ namespace MdocWordAddIn
         {
             if (word == null)
             {
-                throw new InvalidOperationException("Word-Anwendung ist nicht verfügbar.");
+                throw new InvalidOperationException(UiText.WordUnavailable);
             }
 
             Word.Selection selection = word.Selection;
             if (selection == null || selection.Range == null || selection.Range.Start == selection.Range.End)
             {
-                throw new InvalidOperationException("Bitte zuerst Text in Word markieren.");
+                throw new InvalidOperationException(UiText.SelectTextFirst);
             }
 
             var workDir = CreateWorkDir();
@@ -127,7 +126,7 @@ namespace MdocWordAddIn
             Word.Selection selection = word.Selection;
             if (selection == null || selection.Range == null)
             {
-                throw new InvalidOperationException("Keine Word-Auswahl zum Einfügen.");
+                throw new InvalidOperationException(UiText.NoSelectionToInsert);
             }
 
             try
@@ -136,8 +135,7 @@ namespace MdocWordAddIn
             }
             catch (COMException ex)
             {
-                throw new InvalidOperationException(
-                    "InsertXML fehlgeschlagen: " + ex.Message, ex);
+                throw new InvalidOperationException(UiText.InsertXmlFailed(ex.Message), ex);
             }
         }
 

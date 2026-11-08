@@ -30,8 +30,7 @@ namespace MdocWordAddIn
         {
             if (string.IsNullOrWhiteSpace(templateStylesXml))
             {
-                throw new InvalidOperationException(
-                    "styles.xml der Vorlage fehlt — Einfügen abgebrochen.");
+                throw new InvalidOperationException(UiText.FlatOpcNeedsStyles);
             }
 
             string documentXml;
@@ -43,7 +42,7 @@ namespace MdocWordAddIn
                 documentXml = ReadEntryText(zip, "word/document.xml");
                 if (documentXml == null)
                 {
-                    throw new InvalidOperationException("DOCX enthält kein word/document.xml.");
+                    throw new InvalidOperationException(UiText.DocxMissingDocumentXml);
                 }
 
                 generatedNumberingXml = ReadEntryText(zip, "word/numbering.xml");
@@ -119,8 +118,7 @@ namespace MdocWordAddIn
                 stylesXml = ReadEntryText(zip, "word/styles.xml");
                 if (stylesXml == null)
                 {
-                    throw new InvalidOperationException(
-                        "Die hinterlegte Vorlage enthält kein word/styles.xml.");
+                    throw new InvalidOperationException(UiText.TemplateMissingStylesXml);
                 }
 
                 numberingXml = ReadEntryText(zip, "word/numbering.xml");

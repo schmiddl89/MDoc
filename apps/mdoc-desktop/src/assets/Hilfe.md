@@ -39,25 +39,16 @@ Die Gruppe **MDoc** erscheint standardmäßig auf der Registerkarte **Start**:
 
 ### Ribbon: Start oder eigene Registerkarte
 
-| Wert in `%APPDATA%\MDoc\ribbon-placement` | Ergebnis |
+Im Editor-Menü (☰) unter **Ribbon → Start / Tab**:
+
+| Wahl | Ergebnis |
 | :--- | :--- |
-| `home` (oder Datei fehlt) | Gruppe **MDoc** auf **Start** |
-| `ownTab` | eigene Registerkarte **MDoc** |
+| **Start** | Gruppe **MDoc** auf Words Registerkarte **Start** (Standard) |
+| **Tab** | eigene Registerkarte **MDoc** |
 
-So wechselst du die Platzierung:
+Danach Word vollständig neu starten. Gespeichert unter `%APPDATA%\MDoc\ribbon-placement`.
 
-1. Word **vollständig** beenden (alle Fenster schließen).
-2. Im Explorer `%APPDATA%\MDoc` öffnen.
-3. Eine Textdatei namens `ribbon-placement` anlegen (ohne `.txt`).
-4. Nur eine Zeile schreiben: `ownTab` oder `home`.
-5. Speichern und Word neu starten.
-
-Schnellvariante in PowerShell:
-
-```powershell
-New-Item -ItemType Directory -Force "$env:APPDATA\MDoc" | Out-Null
-Set-Content -Path "$env:APPDATA\MDoc\ribbon-placement" -Value "ownTab" -Encoding ascii
-```
+Sprache und Hilfe liegen ebenfalls im Menü (**Sprache → DE / EN**). Die Sprache wird unter `%APPDATA%\MDoc\ui-language` geteilt; nach Wechsel Word neu starten.
 
 ## Tipps
 

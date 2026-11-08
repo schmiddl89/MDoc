@@ -50,6 +50,133 @@
   gap: 7px;
 }
 
+.app-menu {
+  position: relative;
+}
+
+.app-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+}
+
+.app-menu-trigger.is-open {
+  border-color: var(--brand-teal);
+  background: rgb(0 145 148 / 35%);
+}
+
+.app-menu-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  width: 14px;
+  height: 12px;
+}
+
+.app-menu-icon span {
+  display: block;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.app-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 10px;
+  min-width: 220px;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--surface-raised);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 22%);
+}
+
+.app-menu-item {
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
+}
+
+.app-menu-section {
+  display: grid;
+  gap: 6px;
+}
+
+.app-menu-section-title {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pref-switch {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: 34px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.pref-switch-menu {
+  width: 100%;
+}
+
+.pref-switch-menu .pref-option {
+  flex: 1 1 0;
+}
+
+.pref-option {
+  min-width: 2.4rem;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
+  border-left: 1px solid transparent;
+  color: var(--text-muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.pref-option + .pref-option {
+  border-left-color: var(--border);
+}
+
+.pref-option:hover:not(:disabled):not(.is-active) {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.pref-option.is-active {
+  color: #041314;
+  background: var(--brand-teal);
+}
+
+.titlebar .pref-option.is-active:hover:not(:disabled),
+.app-menu-panel .pref-option.is-active:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--brand-teal);
+}
+
+.pref-option:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
 button {
   min-height: 34px;
   padding: 0 12px;

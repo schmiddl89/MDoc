@@ -180,6 +180,34 @@ fn open_guide_window() -> Result<(), String> {
     Ok(())
 }
 
+/// UI-Sprache aus `%APPDATA%\MDoc\ui-language` (`de` / `en`).
+#[tauri::command]
+fn get_ui_language() -> Option<String> {
+    mdoc_core::load_ui_language()
+}
+
+/// Speichert die UI-Sprache gemeinsam für Editor und Word-Add-in.
+#[tauri::command]
+fn set_ui_language(lang: String) -> Result<(), String> {
+    mdoc_core::save_ui_language(&lang).map_err(|error| {
+        format!("UI-Sprache konnte nicht gespeichert werden: {error}")
+    })
+}
+
+/// Ribbon-Platzierung aus `%APPDATA%\MDoc\ribbon-placement` (`home` / `ownTab`).
+#[tauri::command]
+fn get_ribbon_placement() -> String {
+    mdoc_core::load_ribbon_placement().unwrap_or_else(|| "home".to_string())
+}
+
+/// Speichert die Ribbon-Platzierung; Word muss neu gestartet werden.
+#[tauri::command]
+fn set_ribbon_placement(placement: String) -> Result<(), String> {
+    mdoc_core::save_ribbon_placement(&placement).map_err(|error| {
+        format!("Ribbon-Platzierung konnte nicht gespeichert werden: {error}")
+    })
+}
+
 /// Erlaubt genau einen nachfolgenden Schließen-Versuch (nach Speichern/Verwerfen).
 #[tauri::command]
 fn accept_window_close() {
@@ -370,6 +398,10 @@ pub fn run() {
             get_app_paths,
             get_launch_options,
             open_guide_window,
+            get_ui_language,
+            set_ui_language,
+            get_ribbon_placement,
+            set_ribbon_placement,
             accept_window_close,
             load_shared_style_profile,
             save_shared_style_profile,

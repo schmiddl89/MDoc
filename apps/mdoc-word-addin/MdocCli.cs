@@ -25,8 +25,7 @@ namespace MdocWordAddIn
             var exe = ResolveCliExe();
             if (exe == null)
             {
-                throw new InvalidOperationException(
-                    "mdoc-cli.exe wurde nicht gefunden. Bitte MDoc erneut installieren.");
+                throw new InvalidOperationException(UiText.CliMissing);
             }
 
             var arguments = new StringBuilder(command);
@@ -65,7 +64,7 @@ namespace MdocWordAddIn
             {
                 if (process == null)
                 {
-                    throw new InvalidOperationException("mdoc-cli konnte nicht gestartet werden.");
+                    throw new InvalidOperationException(UiText.CliStartFailed);
                 }
 
                 var stdout = process.StandardOutput.ReadToEnd();
@@ -74,14 +73,14 @@ namespace MdocWordAddIn
                 if (!process.HasExited)
                 {
                     try { process.Kill(); } catch { }
-                    throw new TimeoutException("mdoc-cli hat zu lange gebraucht.");
+                    throw new TimeoutException(UiText.CliTimeout);
                 }
 
                 if (process.ExitCode != 0)
                 {
                     var detail = string.IsNullOrWhiteSpace(stderr) ? stdout : stderr;
                     throw new InvalidOperationException(
-                        "mdoc-cli fehlgeschlagen (Exit " + process.ExitCode + "): " + detail.Trim());
+                        UiText.CliFailedExit(process.ExitCode, detail.Trim()));
                 }
             }
         }

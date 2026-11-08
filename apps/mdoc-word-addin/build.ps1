@@ -19,6 +19,7 @@ $sources = @(
   (Join-Path $root 'DocxFlatOpc.cs'),
   (Join-Path $root 'TemplateStylesCache.cs'),
   (Join-Path $root 'InstallLayout.cs'),
+  (Join-Path $root 'UiText.cs'),
   (Join-Path $root 'WordMarkdownBridge.cs'),
   (Join-Path $root 'Properties\AssemblyInfo.cs')
 )
@@ -31,6 +32,8 @@ foreach ($req in @($compression, $compressionFs, $systemXml)) {
 }
 $ribbonHome = Join-Path $root 'Ribbon.Home.xml'
 $ribbonOwnTab = Join-Path $root 'Ribbon.OwnTab.xml'
+$ribbonHomeEn = Join-Path $root 'Ribbon.Home.en.xml'
+$ribbonOwnTabEn = Join-Path $root 'Ribbon.OwnTab.en.xml'
 $dll = Join-Path $outDir 'MdocWordAddIn.dll'
 
 # /link embeds COM-Interop-Typen (wie EmbedInteropTypes), damit keine Extra-PIAs zur Laufzeit noetig sind.
@@ -40,6 +43,8 @@ $dll = Join-Path $outDir 'MdocWordAddIn.dll'
   /link:$ext /link:$office /link:$word `
   /resource:"$ribbonHome,MdocWordAddIn.Ribbon.Home.xml" `
   /resource:"$ribbonOwnTab,MdocWordAddIn.Ribbon.OwnTab.xml" `
+  /resource:"$ribbonHomeEn,MdocWordAddIn.Ribbon.Home.en.xml" `
+  /resource:"$ribbonOwnTabEn,MdocWordAddIn.Ribbon.OwnTab.en.xml" `
   /out:$dll `
   $sources
 

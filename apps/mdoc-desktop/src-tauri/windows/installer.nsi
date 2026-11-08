@@ -390,7 +390,7 @@ FunctionEnd
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
 !insertmacro MUI_PAGE_DIRECTORY
 
-; 5b. MDoc: Word-Vorlage (optional, Standard = Normal.dotm)
+; 5b. MDoc: Word template (optional, default = Normal.dotm)
 Page custom MDocPageTemplate MDocPageTemplateLeave
 
 ; 6. Start menu shortcut page

@@ -1,38 +1,42 @@
 # MDoc
 
-**MDoc** verbindet einen schnellen Markdown-Editor mit Microsoft Word
-(Windows). Die Konvertierung läuft über einen gemeinsamen Rust-Kern; Desktop,
-CLI und Word-Add-in nutzen dieselbe Logik.
+**MDoc** connects a fast Markdown editor with Microsoft Word (Windows).
+Conversion runs through a shared Rust core used by the desktop app, CLI, and
+Word add-in.
 
-Lizenz: [MIT](LICENSE-MIT) OR [Apache-2.0](LICENSE-APACHE).
+Also available in [Deutsch](README.de.md).
+
+License: [MIT](LICENSE-MIT) OR [Apache-2.0](LICENSE-APACHE).
 
 ## Status
 
-MDoc ist eine **öffentliche Beta**. Funktionen und Dateiformate können sich
-ändern; Round-Trips Markdown ↔ Word sind noch nicht für alle Dokumente
-verlustfrei.
+MDoc is a **public beta**. Features and file formats may change; Markdown ↔ Word
+round-trips are not yet lossless for every document.
 
-Es gibt **keine Zusicherung** auf fehlerfreie oder vollständige Funktion.
-Nutzung erfolgt auf eigene Verantwortung — wie in den Lizenzen beschrieben
-**„AS IS“**, ohne Gewährleistung.
+There is **no guarantee** of correct or complete operation. Use at your own
+risk — as stated in the licenses, the software is provided **“AS IS”**, without
+warranty.
 
-Feedback und Fehlerberichte sind willkommen (GitHub Issues).
+Feedback and bug reports are welcome via GitHub Issues.
 
-## Architektur
+## Architecture
 
-- `mdoc-core`: gemeinsames Dokumentmodell und Konvertierung
-- `mdoc-cli`: Headless-Konvertierung und Diagnose (`mdoc-cli.exe`)
-- `apps/mdoc-desktop`: Tauri-2/React-Editor mit Live-Vorschau (**MDoc**)
-- `apps/mdoc-word-addin`: Word-Ribbon (Einfügen / Kopieren / Mapping / Editor)
+- `mdoc-core`: shared document model and conversion
+- `mdoc-cli`: headless conversion and diagnostics (`mdoc-cli.exe`)
+- `apps/mdoc-desktop`: Tauri 2 / React editor with live preview (**MDoc**)
+- `apps/mdoc-word-addin`: Word ribbon (Insert / Copy / Mapping / Editor)
 
-Konfigurationsdaten liegen unter `%APPDATA%\MDoc` (einmalige Migration von
-`mdoc` / `mdword`, falls vorhanden).
+Config files live under `%APPDATA%\MDoc` (one-time migration from `mdoc` /
+`mdword` if present).
 
-## Vorlagen und Style-Mapping
+UI language is stored in `%APPDATA%\MDoc\ui-language` (`de` or `en`) and is
+shared by the editor and the Word add-in.
 
-DOCX-Export nutzt `word/styles.xml` einer `.dotx`/`.dotm`/`.docx`. Ein separates
-JSON-`StyleProfile` mappt Markdown-Semantik auf Style-IDs. Vorlage und Mapping
-bleiben getrennt.
+## Templates and style mapping
+
+DOCX export uses `word/styles.xml` from a `.dotx` / `.dotm` / `.docx`. A separate
+JSON `StyleProfile` maps Markdown semantics to style IDs. Template and mapping
+stay separate.
 
 ```powershell
 cargo run -p mdoc-cli -- styles company.dotx --pretty
@@ -41,14 +45,14 @@ cargo run -p mdoc-cli -- convert input.md output.docx `
   --style-profile profiles/example-style-profile.json
 ```
 
-## Word-Ribbon
+## Word ribbon
 
-Standard: Gruppe **MDoc** auf der Registerkarte **Start**. Für eine eigene
-Registerkarte: Datei `%APPDATA%\MDoc\ribbon-placement` mit Inhalt `ownTab`.
+Default: **MDoc** group on the **Home** tab. Switch to a dedicated tab in the
+editor menu (**Ribbon → Tab**), then restart Word.
 
 Details: `apps/mdoc-word-addin/README.md`.
 
-## Entwicklung
+## Development
 
 ```powershell
 cargo test --workspace
@@ -58,7 +62,7 @@ npm install
 npm run tauri dev
 ```
 
-Icons aus `inputs/icon.svg` neu erzeugen:
+Regenerate icons from `inputs/icon.svg`:
 
 ```powershell
 cd apps/mdoc-desktop
@@ -67,8 +71,8 @@ npm run icons
 
 ## Branding
 
-- Produktname: **MDoc**
-- Farben: Teal `#009194`, Anthrazit `#3c3c3b`
-- `inputs/logo.svg` / `logo_white.svg` — Wortmarke
-- `inputs/icon.svg` — App-Icon (aus dem Markenzeichen)
-- Schrift **Orbitron** (SIL Open Font License) unter `apps/mdoc-desktop/src/assets/fonts/`
+- Product name: **MDoc**
+- Colors: teal `#009194`, charcoal `#3c3c3b`
+- `inputs/logo.svg` / `logo_white.svg` — wordmark
+- `inputs/icon.svg` — app icon (from the mark)
+- Font **Orbitron** (SIL Open Font License) under `apps/mdoc-desktop/src/assets/fonts/`

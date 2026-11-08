@@ -17,10 +17,9 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
 import './editor.css'
+import { AppMenu } from './AppMenu'
 import { MappingDialog } from './MappingDialog'
-import GUIDE_MARKDOWN from './assets/Hilfe.md?raw'
-
-const INITIAL_MARKDOWN = GUIDE_MARKDOWN
+import { guideMarkdown, useLocale, type Locale } from './i18n'
 
 interface DocumentStats {
   blocks: number
@@ -70,9 +69,14 @@ function storedPath(key: string): string | null {
   return window.localStorage.getItem(key)
 }
 
-function fileName(path: string | null, guideMode = false): string {
-  if (guideMode) return 'Hilfe.md'
-  if (!path) return 'Unbenannt.md'
+function fileName(
+  path: string | null,
+  guideMode: boolean,
+  untitled: string,
+  guideName: string,
+): string {
+  if (guideMode) return guideName
+  if (!path) return untitled
   return path.split(/[\\/]/).at(-1) ?? path
 }
 
@@ -86,8 +90,6 @@ function normalizeMarkdown(value: string): string {
 }
 
 async function finishWindowClose(): Promise<void> {
-  // Flag setzen, dann close() — löst CloseRequested erneut aus und wird durchgelassen.
-  // destroy() als Fallback, falls close an der ACL scheitert.
   await invoke('accept_window_close')
   try {
     await getCurrentWindow().close()
@@ -99,8 +101,11 @@ async function finishWindowClose(): Promise<void> {
 async function defaultSavePath(
   currentPath: string | null,
   extension: string,
+  baseFallback: string,
 ): Promise<string | undefined> {
-  const baseName = fileName(currentPath).replace(/\.[^.]+$/, '') || 'Dokument'
+  const baseName =
+    fileName(currentPath, false, baseFallback, baseFallback).replace(/\.[^.]+$/, '') ||
+    baseFallback
   const file = `${baseName}.${extension}`
   try {
     if (currentPath) {
@@ -113,15 +118,16 @@ async function defaultSavePath(
 }
 
 function App() {
-  const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN)
-  const [savedMarkdown, setSavedMarkdown] = useState(INITIAL_MARKDOWN)
+  const { locale, setLocale, t, guide, ready: localeReady } = useLocale()
+  const [markdown, setMarkdown] = useState(() => guideMarkdown(locale))
+  const [savedMarkdown, setSavedMarkdown] = useState(() => guideMarkdown(locale))
   const [documentPath, setDocumentPath] = useState<string | null>(null)
   const [tauriStats, setTauriStats] = useState<DocumentStats>({
     blocks: 0,
     words: 0,
-    characters: INITIAL_MARKDOWN.length,
+    characters: guideMarkdown(locale).length,
   })
-  const [status, setStatus] = useState('Bereit')
+  const [status, setStatus] = useState(() => t('ready'))
   const [busy, setBusy] = useState(false)
   const [templatePath, setTemplatePath] = useState<string | null>(() =>
     storedPath(TEMPLATE_STORAGE_KEY),
@@ -133,15 +139,20 @@ function App() {
   const [mappingOpen, setMappingOpen] = useState(false)
   const [guideMode, setGuideMode] = useState(false)
   const [appPaths, setAppPaths] = useState<AppPaths | null>(null)
+  const [ribbonPlacement, setRibbonPlacement] = useState<'home' | 'ownTab'>('home')
   const workspaceRef = useRef<HTMLElement | null>(null)
   const draggingSplit = useRef(false)
   const isDirtyRef = useRef(false)
   const confirmCloseRef = useRef<() => Promise<boolean>>(async () => true)
   const closingRef = useRef(false)
+  const guideSeedRef = useRef(normalizeMarkdown(guideMarkdown(locale)))
+  const markdownRef = useRef(markdown)
+  const savedMarkdownRef = useRef(savedMarkdown)
+  markdownRef.current = markdown
+  savedMarkdownRef.current = savedMarkdown
   const runningInTauri = isTauri()
   const isDirty = normalizeMarkdown(markdown) !== normalizeMarkdown(savedMarkdown)
   isDirtyRef.current = isDirty
-  /** Vorschau verzögert — Öffnen/Tippen blockiert die UI weniger. */
   const previewMarkdown = useDeferredValue(markdown)
   const usingSharedMapping =
     !!styleProfilePath &&
@@ -157,19 +168,50 @@ function App() {
   )
   const stats = runningInTauri ? tauriStats : browserStats
   const title = useMemo(
-    () => `${isDirty ? '● ' : ''}${fileName(documentPath, guideMode)}`,
-    [documentPath, guideMode, isDirty],
+    () =>
+      `${isDirty ? '● ' : ''}${fileName(
+        documentPath,
+        guideMode,
+        t('untitled'),
+        t('guideFileName'),
+      )}`,
+    [documentPath, guideMode, isDirty, t],
   )
+
+  // Startinhalt / Hilfe-Fenster: Guide-Text der aktuellen Locale nachziehen.
+  useEffect(() => {
+    if (!localeReady) return
+    const nextGuide = normalizeMarkdown(guide)
+    const deGuide = normalizeMarkdown(guideMarkdown('de'))
+    const enGuide = normalizeMarkdown(guideMarkdown('en'))
+    const current = normalizeMarkdown(markdownRef.current)
+    const stillSeed =
+      current === guideSeedRef.current || current === deGuide || current === enGuide
+    if (!(guideMode || (stillSeed && !documentPath))) return
+    if (
+      current === nextGuide &&
+      normalizeMarkdown(savedMarkdownRef.current) === nextGuide
+    ) {
+      if (guideMode) setStatus(t('statusHelp'))
+      return
+    }
+    guideSeedRef.current = nextGuide
+    setMarkdown(guide)
+    setSavedMarkdown(guide)
+    if (guideMode) setStatus(t('statusHelp'))
+  }, [guide, guideMode, localeReady, documentPath, t])
 
   useEffect(() => {
     if (!runningInTauri) return
     const timeout = window.setTimeout(() => {
       void invoke<DocumentStats>('analyze_markdown', { markdown })
         .then(setTauriStats)
-        .catch((error: unknown) => setStatus(`Parserfehler: ${errorMessage(error)}`))
+        .catch((error: unknown) =>
+          setStatus(t('statusParserError', { error: errorMessage(error) })),
+        )
     }, 180)
     return () => window.clearTimeout(timeout)
-  }, [markdown, runningInTauri])
+  }, [markdown, runningInTauri, t])
 
   const saveDocument = useCallback(
     async (choosePath = false): Promise<boolean> => {
@@ -177,9 +219,13 @@ function App() {
         let target = choosePath ? null : documentPath
         if (!target) {
           target = await save({
-            title: 'Markdown speichern',
-            defaultPath: await defaultSavePath(documentPath, 'md'),
-            filters: [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
+            title: t('dialogSaveMarkdown'),
+            defaultPath: await defaultSavePath(
+              documentPath,
+              'md',
+              t('documentBaseName'),
+            ),
+            filters: [{ name: t('filterMarkdown'), extensions: ['md', 'markdown'] }],
           })
         }
         if (!target) return false
@@ -187,55 +233,50 @@ function App() {
         await invoke('write_markdown', { path: target, markdown })
         setDocumentPath(target)
         setSavedMarkdown(markdown)
-        setStatus(`Gespeichert: ${target}`)
+        setStatus(t('statusSaved', { path: target }))
         return true
       } catch (error) {
-        setStatus(`Speichern fehlgeschlagen: ${errorMessage(error)}`)
+        setStatus(t('statusSaveFailed', { error: errorMessage(error) }))
         return false
       } finally {
         setBusy(false)
       }
     },
-    [documentPath, markdown],
+    [documentPath, markdown, t],
   )
 
-  /** Speichern / Nicht speichern / Abbrechen — true = fortfahren. */
   const confirmDiscardOrSave = useCallback(async (): Promise<boolean> => {
     if (!isDirtyRef.current) return true
     if (runningInTauri) {
       try {
-        const choice = await message(
-          'Das aktuelle Dokument enthält ungespeicherte Änderungen. Speichern?',
-          {
-            title: 'Ungespeicherte Änderungen',
-            kind: 'warning',
-            buttons: {
-              yes: 'Speichern',
-              no: 'Nicht speichern',
-              cancel: 'Abbrechen',
-            },
-          },
-        )
-        if (choice === 'Speichern' || choice === 'Yes') {
+        const yes = t('btnSave')
+        const no = t('btnDontSave')
+        const cancel = t('btnCancel')
+        const choice = await message(t('dialogUnsavedBody'), {
+          title: t('dialogUnsavedTitle'),
+          kind: 'warning',
+          buttons: { yes, no, cancel },
+        })
+        if (choice === yes || choice === 'Yes' || choice === 'Speichern') {
           return await saveDocument()
         }
-        if (choice === 'Nicht speichern' || choice === 'No') return true
+        if (choice === no || choice === 'No' || choice === 'Nicht speichern') return true
         return false
       } catch (error) {
-        setStatus(`Rückfrage fehlgeschlagen: ${errorMessage(error)}`)
+        setStatus(t('statusConfirmFailed', { error: errorMessage(error) }))
         return false
       }
     }
-    if (!window.confirm('Ungespeicherte Änderungen verwerfen?')) return false
+    if (!window.confirm(t('confirmDiscardBrowser'))) return false
     return true
-  }, [runningInTauri, saveDocument])
+  }, [runningInTauri, saveDocument, t])
   confirmCloseRef.current = confirmDiscardOrSave
 
   const loadDocumentFromPath = useCallback(
     async (selected: string) => {
       setBusy(true)
       const isDocx = selected.toLowerCase().endsWith('.docx')
-      setStatus(isDocx ? 'DOCX wird importiert …' : 'Dokument wird geladen …')
+      setStatus(isDocx ? t('statusImportingDocx') : t('statusLoadingDocument'))
       try {
         setGuideMode(false)
         if (isDocx) {
@@ -243,25 +284,29 @@ function App() {
             path: selected,
             styleProfilePath,
           })
-          // Noch nicht als .md gespeichert → als ungespeichert markieren.
           setDocumentPath(null)
           setMarkdown(imported.markdown)
           setSavedMarkdown('')
-          setStatus(`${imported.blocks} Blöcke aus ${selected} importiert`)
+          setStatus(
+            t('statusImportedBlocks', {
+              blocks: imported.blocks,
+              path: selected,
+            }),
+          )
           return
         }
         const contents = await invoke<string>('read_markdown', { path: selected })
         setDocumentPath(selected)
         setMarkdown(contents)
         setSavedMarkdown(contents)
-        setStatus(`Geöffnet: ${selected}`)
+        setStatus(t('statusOpened', { path: selected }))
       } catch (error) {
-        setStatus(`Öffnen fehlgeschlagen: ${errorMessage(error)}`)
+        setStatus(t('statusOpenFailed', { error: errorMessage(error) }))
       } finally {
         setBusy(false)
       }
     },
-    [styleProfilePath],
+    [styleProfilePath, t],
   )
 
   useEffect(() => {
@@ -278,6 +323,22 @@ function App() {
   useEffect(() => {
     if (!runningInTauri) return
     let cancelled = false
+    void invoke<string>('get_ribbon_placement')
+      .then((value) => {
+        if (cancelled) return
+        setRibbonPlacement(value === 'ownTab' ? 'ownTab' : 'home')
+      })
+      .catch(() => {
+        /* default home */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [runningInTauri])
+
+  useEffect(() => {
+    if (!runningInTauri || !localeReady) return
+    let cancelled = false
     void invoke<AppPaths>('get_app_paths')
       .then((paths) => {
         if (cancelled) return
@@ -288,20 +349,16 @@ function App() {
         if (!templatePath && paths.sharedTemplatePath) {
           setTemplatePath(paths.sharedTemplatePath)
           window.localStorage.setItem(TEMPLATE_STORAGE_KEY, paths.sharedTemplatePath)
-          setStatus(`Vorlage (geteilt): ${paths.sharedTemplatePath}`)
+          setStatus(t('statusSharedTemplate', { path: paths.sharedTemplatePath }))
         } else if (templatePath && !paths.sharedTemplatePath) {
-          // localStorage → AppData migrieren (Word-Add-in liest nur die Datei).
           void invoke('save_shared_template_path', { path: templatePath }).catch(() => {
             /* optional */
           })
         } else if (!templatePath) {
-          setStatus(
-            'Noch keine Vorlage gewählt — bitte .dotx/.dotm wählen und Mapping speichern (für Word-Einfügen).',
-          )
+          setStatus(t('statusNoTemplate'))
         }
-        // mtime+Größe: styles.xml nur neu lesen, wenn sich die Vorlage geändert hat.
         void invoke('ensure_shared_template_styles_cache').catch(() => {
-          /* optional — Word kann die .dotm sperren */
+          /* optional */
         })
       })
       .catch(() => {
@@ -310,22 +367,23 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [runningInTauri, templatePath])
+  }, [runningInTauri, templatePath, localeReady, t])
 
   useEffect(() => {
-    if (!runningInTauri) return
+    if (!runningInTauri || !localeReady) return
     let cancelled = false
     void invoke<LaunchOptions>('get_launch_options')
       .then(async (options) => {
         if (cancelled) return
         if (options.guide) {
           setGuideMode(true)
-          setMarkdown(GUIDE_MARKDOWN)
-          setSavedMarkdown(GUIDE_MARKDOWN)
+          setMarkdown(guide)
+          setSavedMarkdown(guide)
+          guideSeedRef.current = normalizeMarkdown(guide)
           setDocumentPath(null)
-          setStatus('Hilfe')
+          setStatus(t('statusHelp'))
           try {
-            await getCurrentWindow().setTitle('MDoc – Hilfe')
+            await getCurrentWindow().setTitle(t('helpTitle'))
           } catch {
             /* optional */
           }
@@ -335,19 +393,18 @@ function App() {
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setStatus(`Startoptionen konnten nicht gelesen werden: ${errorMessage(error)}`)
+          setStatus(t('statusLaunchOptionsFailed', { error: errorMessage(error) }))
         }
       })
     return () => {
       cancelled = true
     }
-  }, [loadDocumentFromPath, runningInTauri])
+  }, [loadDocumentFromPath, runningInTauri, localeReady, guide, t])
 
   useEffect(() => {
     if (!runningInTauri) return
     let disposed = false
     let unlisten: (() => void) | undefined
-    // Rust blockiert Close und sendet dieses Event — zuverlässiger als onCloseRequested.
     void listen('mdoc-close-requested', () => {
       if (closingRef.current) return
       void (async () => {
@@ -363,7 +420,7 @@ function App() {
           await finishWindowClose()
         } catch (error) {
           closingRef.current = false
-          setStatus(`Schließen fehlgeschlagen: ${errorMessage(error)}`)
+          setStatus(t('statusCloseFailed', { error: errorMessage(error) }))
         }
       })()
     }).then((fn) => {
@@ -377,7 +434,7 @@ function App() {
       disposed = true
       unlisten?.()
     }
-  }, [runningInTauri])
+  }, [runningInTauri, t])
 
   useEffect(() => {
     const onPointerMove = (event: PointerEvent) => {
@@ -411,11 +468,11 @@ function App() {
     if (!(await confirmDiscardOrSave())) return
     try {
       const selected = await open({
-        title: 'Markdown oder Word-Dokument öffnen',
+        title: t('dialogOpenTitle'),
         multiple: false,
         filters: [
           {
-            name: 'Markdown oder Word-Dokument',
+            name: t('filterOpen'),
             extensions: ['md', 'markdown', 'mdown', 'docx'],
           },
         ],
@@ -423,28 +480,28 @@ function App() {
       if (typeof selected !== 'string') return
       await loadDocumentFromPath(selected)
     } catch (error) {
-      setStatus(`Öffnen fehlgeschlagen: ${errorMessage(error)}`)
+      setStatus(t('statusOpenFailed', { error: errorMessage(error) }))
     }
   }
 
   async function exportDocument() {
     try {
       const target = await save({
-        title: 'Als Word-Dokument exportieren',
-        defaultPath: await defaultSavePath(documentPath, 'docx'),
-        filters: [{ name: 'Word-Dokument', extensions: ['docx'] }],
+        title: t('dialogExportTitle'),
+        defaultPath: await defaultSavePath(documentPath, 'docx', t('documentBaseName')),
+        filters: [{ name: t('filterWordDoc'), extensions: ['docx'] }],
       })
       if (!target) return
       setBusy(true)
-      setStatus('DOCX wird geschrieben …')
+      setStatus(t('statusWritingDocx'))
       const result = await invoke<ExportResult>('export_docx', {
         path: target,
         markdown,
         settings: { templatePath, styleProfilePath },
       })
-      setStatus(`${result.blocks} Blöcke nach ${result.path} exportiert`)
+      setStatus(t('statusExported', { blocks: result.blocks, path: result.path }))
     } catch (error) {
-      setStatus(`DOCX-Export fehlgeschlagen: ${errorMessage(error)}`)
+      setStatus(t('statusExportFailed', { error: errorMessage(error) }))
     } finally {
       setBusy(false)
     }
@@ -453,11 +510,9 @@ function App() {
   async function chooseTemplate() {
     try {
       const selected = await open({
-        title: 'Word-Vorlage auswählen',
+        title: t('dialogTemplateTitle'),
         multiple: false,
-        filters: [
-          { name: 'Word-Vorlage', extensions: ['dotm', 'dotx', 'docx'] },
-        ],
+        filters: [{ name: t('filterTemplate'), extensions: ['dotm', 'dotx', 'docx'] }],
       })
       if (typeof selected !== 'string') return
       setBusy(true)
@@ -465,9 +520,11 @@ function App() {
       setTemplatePath(selected)
       window.localStorage.setItem(TEMPLATE_STORAGE_KEY, selected)
       await invoke('save_shared_template_path', { path: selected })
-      setStatus(`Vorlage mit ${styles.length} Formatvorlagen geladen: ${selected}`)
+      setStatus(
+        t('statusTemplateLoaded', { count: styles.length, path: selected }),
+      )
     } catch (error) {
-      setStatus(`Vorlage konnte nicht geladen werden: ${errorMessage(error)}`)
+      setStatus(t('statusTemplateFailed', { error: errorMessage(error) }))
     } finally {
       setBusy(false)
     }
@@ -492,9 +549,7 @@ function App() {
       setStyleProfilePath(null)
       window.localStorage.removeItem(STYLE_PROFILE_STORAGE_KEY)
     }
-    setStatus(
-      'Vorlage zurückgesetzt — für Word-Einfügen bitte erneut .dotx/.dotm wählen und Mapping speichern.',
-    )
+    setStatus(t('statusTemplateCleared'))
   }
 
   async function newDocument() {
@@ -503,15 +558,33 @@ function App() {
     setMarkdown('')
     setSavedMarkdown('')
     setDocumentPath(null)
-    setStatus('Neues Dokument')
+    setStatus(t('statusNewDocument'))
   }
 
   async function openHelpWindow() {
     try {
       await invoke('open_guide_window')
-      setStatus('Hilfe in neuem Fenster geöffnet')
+      setStatus(t('statusHelpOpened'))
     } catch (error) {
-      setStatus(`Hilfe konnte nicht geöffnet werden: ${errorMessage(error)}`)
+      setStatus(t('statusHelpFailed', { error: errorMessage(error) }))
+    }
+  }
+
+  async function onLanguageChange(next: Locale) {
+    if (next === locale) return
+    await setLocale(next)
+  }
+
+  async function onRibbonChange(next: 'home' | 'ownTab') {
+    if (next === ribbonPlacement) return
+    const previous = ribbonPlacement
+    setRibbonPlacement(next)
+    try {
+      await invoke('set_ribbon_placement', { placement: next })
+      setStatus(next === 'ownTab' ? t('statusRibbonOwnTab') : t('statusRibbonHome'))
+    } catch (error) {
+      setRibbonPlacement(previous)
+      setStatus(t('statusRibbonFailed', { error: errorMessage(error) }))
     }
   }
 
@@ -532,21 +605,13 @@ function App() {
         </div>
         <div className="title-actions">
           <button type="button" onClick={() => void newDocument()} disabled={busy}>
-            Neu
+            {t('newDoc')}
           </button>
           <button type="button" onClick={() => void openDocument()} disabled={busy}>
-            Öffnen
+            {t('open')}
           </button>
           <button type="button" onClick={() => void saveDocument()} disabled={busy}>
-            Speichern
-          </button>
-          <button
-            type="button"
-            onClick={() => void openHelpWindow()}
-            disabled={busy}
-            title="Kurzanleitung in neuem Fenster"
-          >
-            Hilfe
+            {t('save')}
           </button>
           <button
             type="button"
@@ -558,19 +623,21 @@ function App() {
             title={
               templatePath ??
               appPaths?.defaultTemplatePath ??
-              'Word-Vorlage auswählen (Fallback: Normal.dotm)'
+              t('templateTooltipFallback')
             }
           >
-            Vorlage{templatePath ? ' ✓' : appPaths?.defaultTemplateAvailable ? ' ·' : ' …'}
+            {t('template')}
+            {templatePath ? ' ✓' : appPaths?.defaultTemplateAvailable ? ' ·' : ' …'}
           </button>
           <button
             type="button"
             className={usingSharedMapping || styleProfilePath ? 'configuration-active' : ''}
             onClick={openMappingDialog}
             disabled={busy}
-            title={styleProfilePath ?? 'Formatvorlagen zuordnen'}
+            title={styleProfilePath ?? t('mappingTooltipFallback')}
           >
-            Mapping{(usingSharedMapping || styleProfilePath) ? ' ✓' : ' …'}
+            {t('mapping')}
+            {usingSharedMapping || styleProfilePath ? ' ✓' : ' …'}
           </button>
           {templatePath && (
             <button
@@ -578,8 +645,8 @@ function App() {
               className="configuration-clear"
               onClick={clearExportConfiguration}
               disabled={busy}
-              title="Benutzer-Vorlage zurücksetzen (wieder Normal.dotm)"
-              aria-label="Benutzer-Vorlage zurücksetzen"
+              title={t('clearTemplateTooltip')}
+              aria-label={t('clearTemplateAria')}
             >
               ×
             </button>
@@ -590,8 +657,16 @@ function App() {
             onClick={() => void exportDocument()}
             disabled={busy}
           >
-            DOCX exportieren
+            {t('exportDocx')}
           </button>
+          <AppMenu
+            busy={busy}
+            runningInTauri={runningInTauri}
+            ribbonPlacement={ribbonPlacement}
+            onHelp={() => void openHelpWindow()}
+            onLanguageChange={(next) => void onLanguageChange(next)}
+            onRibbonChange={(next) => void onRibbonChange(next)}
+          />
         </div>
       </header>
 
@@ -604,14 +679,14 @@ function App() {
       >
         <div className="pane editor-pane">
           <div className="pane-heading">
-            <span>Markdown</span>
+            <span>{t('editor')}</span>
             <span>UTF-8</span>
           </div>
           <textarea
-            aria-label="Markdown-Editor"
+            aria-label={t('editorAria')}
             value={markdown}
             onChange={(event) => setMarkdown(event.target.value)}
-            placeholder="Markdown eingeben …"
+            placeholder={t('editorPlaceholder')}
             spellCheck
           />
         </div>
@@ -620,7 +695,7 @@ function App() {
           className="split-handle"
           role="separator"
           aria-orientation="vertical"
-          aria-label="Aufteilung zwischen Editor und Vorschau"
+          aria-label={t('splitAria')}
           aria-valuemin={SPLIT_MIN}
           aria-valuemax={SPLIT_MAX}
           aria-valuenow={Math.round(splitPercent)}
@@ -651,7 +726,7 @@ function App() {
 
         <div className="pane preview-pane">
           <div className="pane-heading">
-            <span>Vorschau</span>
+            <span>{t('preview')}</span>
           </div>
           <article className="markdown-preview">
             <ReactMarkdown
@@ -665,9 +740,13 @@ function App() {
       </section>
 
       <footer className="statusbar" aria-live="polite">
-        <span className={busy ? 'working' : ''}>{busy ? 'Wird verarbeitet …' : status}</span>
+        <span className={busy ? 'working' : ''}>{busy ? t('working') : status}</span>
         <span>
-          {stats.words} Wörter · {stats.characters} Zeichen · {stats.blocks} Blöcke
+          {t('stats', {
+            words: stats.words,
+            characters: stats.characters,
+            blocks: stats.blocks,
+          })}
         </span>
       </footer>
 
@@ -683,9 +762,7 @@ function App() {
                 /* optional */
               })
             }
-            setStatus(
-              `Style-Profil „${profileName}“ gespeichert — Word-Einfügen nutzt diese Vorlage und das Mapping.`,
-            )
+            setStatus(t('statusProfileSaved', { name: profileName }))
           }}
         />
       )}

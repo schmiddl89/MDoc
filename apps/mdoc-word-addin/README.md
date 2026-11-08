@@ -22,17 +22,22 @@ Damit entstehen unter `%APPDATA%\MDoc\`:
 | `template-numbering.xml` | Cache von `word/numbering.xml` (Outline der Überschriften) |
 | `template-styles.meta` | Fingerprint: Pfad, mtime (Unix-ms), Größe, numbering |
 | `style-profile.json` | Mapping Markdown → Style-IDs |
+| `ui-language` | UI language (`de` / `en`), shared with the desktop editor |
 
 **Einfügen / Start:** mtime+Größe prüfen. Unverändert → Cache. Geändert → Share-Read. Gesperrt → Cache bzw. Word-COM. InsertXML nutzt Vorlagen-`styles` + gemergte `numbering` (Outline aus Vorlage, Listen ab numId 1000 aus der generierten DOCX).
 
-## Ribbon-Aktionen
+## Ribbon actions / Ribbon-Aktionen
 
-| Button | Verhalten |
+| Button (EN / DE) | Behavior |
 |--------|-----------|
-| **Einfügen** | Markdown aus der Zwischenablage → `mdoc-cli convert` → Temp-DOCX → **InsertXML** (Inhalt + `styles.xml` aus der Editor-Vorlage) |
-| **Kopieren** | Word-Auswahl → Temp-DOCX → `mdoc-cli import` → Markdown in die Zwischenablage |
-| **Formatvorlagen** | startet `mdoc-desktop.exe --map-styles` |
-| **Editor** | startet den MDoc-Editor |
+| **Insert** / **Einfügen** | Markdown from clipboard → `mdoc-cli convert` → temp DOCX → **InsertXML** |
+| **Copy** / **Kopieren** | Word selection → temp DOCX → `mdoc-cli import` → Markdown on clipboard |
+| **Styles** / **Formatvorlagen** | launches `mdoc-desktop.exe --map-styles` |
+| **Editor** | launches the MDoc editor |
+
+### UI language
+
+Ribbon labels and message boxes follow `%APPDATA%\MDoc\ui-language` (`de` or `en`, default `en` if missing). Set the language in the MDoc desktop title bar; **restart Word** afterwards (same as ribbon placement).
 
 ## Build
 
