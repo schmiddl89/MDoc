@@ -26,6 +26,11 @@ Es gibt **keine Zusicherung** auf fehlerfreie oder vollständige Funktion.
 Nutzung erfolgt auf eigene Verantwortung — wie in den Lizenzen beschrieben
 **„AS IS“**, ohne Gewährleistung.
 
+Wesentliche Teile dieses Codes entstanden mit Unterstützung von
+KI-Entwicklungswerkzeugen (unter anderem Cursor). Verantwortlich für Review,
+Releases und die veröffentlichte Software bleibt der Projektbetreuer. Das ändert
+weder die Lizenzbedingungen noch den „AS IS“-Hinweis oben.
+
 Feedback und Fehlerberichte sind willkommen (GitHub Issues).
 
 ## Architektur

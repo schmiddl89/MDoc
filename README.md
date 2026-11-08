@@ -25,6 +25,11 @@ There is **no guarantee** of correct or complete operation. Use at your own
 risk — as stated in the licenses, the software is provided **“AS IS”**, without
 warranty.
 
+Substantial parts of this codebase were written with assistance from AI coding
+tools (including Cursor). The project maintainer remains responsible for review,
+release decisions, and the published software. That does not change the license
+terms or the “AS IS” disclaimer above.
+
 Feedback and bug reports are welcome via GitHub Issues.
 
 ## Architecture
