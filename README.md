@@ -6,6 +6,18 @@ CLI und Word-Add-in nutzen dieselbe Logik.
 
 Lizenz: [MIT](LICENSE-MIT) OR [Apache-2.0](LICENSE-APACHE).
 
+## Status
+
+MDoc ist eine **öffentliche Beta**. Funktionen und Dateiformate können sich
+ändern; Round-Trips Markdown ↔ Word sind noch nicht für alle Dokumente
+verlustfrei.
+
+Es gibt **keine Zusicherung** auf fehlerfreie oder vollständige Funktion.
+Nutzung erfolgt auf eigene Verantwortung — wie in den Lizenzen beschrieben
+**„AS IS“**, ohne Gewährleistung.
+
+Feedback und Fehlerberichte sind willkommen (GitHub Issues).
+
 ## Architektur
 
 - `mdoc-core`: gemeinsames Dokumentmodell und Konvertierung
