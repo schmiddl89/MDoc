@@ -22,7 +22,7 @@ Damit entstehen unter `%APPDATA%\MDoc\`:
 | `template-numbering.xml` | Cache von `word/numbering.xml` (Outline der Überschriften) |
 | `template-styles.meta` | Fingerprint: Pfad, mtime (Unix-ms), Größe, numbering |
 | `style-profile.json` | Mapping Markdown → Style-IDs |
-| `ui-language` | UI language (`de` / `en`), shared with the desktop editor |
+| `settings.json` | Shared preferences (`uiLanguage`, `ribbonPlacement`, …) |
 
 **Einfügen / Start:** mtime+Größe prüfen. Unverändert → Cache. Geändert → Share-Read. Gesperrt → Cache bzw. Word-COM. InsertXML nutzt Vorlagen-`styles` + gemergte `numbering` (Outline aus Vorlage, Listen ab numId 1000 aus der generierten DOCX).
 
@@ -35,9 +35,12 @@ Damit entstehen unter `%APPDATA%\MDoc\`:
 | **Styles** / **Formatvorlagen** | launches `mdoc-desktop.exe --map-styles` |
 | **Editor** | launches the MDoc editor |
 
-### UI language
+### UI language and ribbon placement
 
-Ribbon labels and message boxes follow `%APPDATA%\MDoc\ui-language` (`de` or `en`, default `en` if missing). Set the language in the MDoc desktop title bar; **restart Word** afterwards (same as ribbon placement).
+Ribbon labels, message boxes, and ribbon placement follow `%APPDATA%\MDoc\settings.json`
+(`uiLanguage`: `de`/`en`, `ribbonPlacement`: `home`/`ownTab`). Set both in the MDoc
+desktop menu; **restart Word** afterwards. Legacy `ui-language` / `ribbon-placement`
+files are still read if `settings.json` is missing.
 
 ## Build
 
@@ -57,28 +60,7 @@ Word **vollständig beenden** und neu starten. `mdoc-cli.exe` muss neben `mdoc-d
 .\Register-MdocAddIn.ps1 -Unregister
 ```
 
-## Ribbon-Platzierung umschalten
+## Ribbon placement
 
-Das Add-in kann an zwei Stellen im Menüband erscheinen:
-
-| Wert | Ergebnis |
-|------|----------|
-| `home` | Gruppe **MDoc** auf der Registerkarte **Start** (Standard) |
-| `ownTab` | eigene Registerkarte **MDoc** |
-
-### So wechselst du die Platzierung
-
-1. Word **vollständig beenden** (alle Fenster schließen).
-2. Im Explorer die Adresszeile öffnen und eingeben: `%APPDATA%\MDoc`
-3. Dort eine Textdatei namens **`ribbon-placement`** anlegen (ohne `.txt`-Endung).
-4. In die Datei **nur eine Zeile** schreiben, z. B. `ownTab` oder `home`.
-5. Speichern und Word neu starten.
-
-Fehlt die Datei oder ist sie leer, gilt **`home`**.
-
-### Schnellvariante (PowerShell)
-
-```powershell
-New-Item -ItemType Directory -Force "$env:APPDATA\MDoc" | Out-Null
-Set-Content -Path "$env:APPDATA\MDoc\ribbon-placement" -Value "ownTab" -Encoding ascii
-```
+Choose **Ribbon → Home / Tab** in the MDoc desktop menu, then restart Word.
+The value is stored in `settings.json` as `ribbonPlacement` (`home` or `ownTab`).

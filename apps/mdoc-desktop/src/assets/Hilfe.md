@@ -46,9 +46,9 @@ Im Editor-Menü (☰) unter **Ribbon → Start / Tab**:
 | **Start** | Gruppe **MDoc** auf Words Registerkarte **Start** (Standard) |
 | **Tab** | eigene Registerkarte **MDoc** |
 
-Danach Word vollständig neu starten. Gespeichert unter `%APPDATA%\MDoc\ribbon-placement`.
+Danach Word vollständig neu starten. Einstellungen liegen unter `%APPDATA%\MDoc\settings.json`.
 
-Sprache und Hilfe liegen ebenfalls im Menü (**Sprache → DE / EN**). Die Sprache wird unter `%APPDATA%\MDoc\ui-language` geteilt; nach Wechsel Word neu starten.
+Sprache und Hilfe liegen ebenfalls im Menü (**Sprache → DE / EN**). Die Sprache wird über `settings.json` mit dem Word-Add-in geteilt; nach Wechsel Word neu starten.
 
 ## Tipps
 

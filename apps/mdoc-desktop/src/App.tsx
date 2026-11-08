@@ -19,7 +19,7 @@ import 'katex/dist/katex.min.css'
 import './editor.css'
 import { AppMenu } from './AppMenu'
 import { MappingDialog } from './MappingDialog'
-import { guideMarkdown, useLocale, type Locale } from './i18n'
+import { guideMarkdown, useLocale, type AppSettingsDto, type Locale } from './i18n'
 
 interface DocumentStats {
   blocks: number
@@ -63,6 +63,17 @@ function storedSplitPercent(): number {
   const value = raw ? Number(raw) : 50
   if (!Number.isFinite(value)) return 50
   return Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, value))
+}
+
+function persistSplitPercent(value: number) {
+  const clamped = Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, Math.round(value)))
+  window.localStorage.setItem(SPLIT_STORAGE_KEY, String(clamped))
+  if (isTauri()) {
+    void invoke('set_split_percent', { percent: clamped }).catch(() => {
+      /* optional */
+    })
+  }
+  return clamped
 }
 
 function storedPath(key: string): string | null {
@@ -323,13 +334,21 @@ function App() {
   useEffect(() => {
     if (!runningInTauri) return
     let cancelled = false
-    void invoke<string>('get_ribbon_placement')
-      .then((value) => {
+    void invoke<AppSettingsDto>('get_app_settings')
+      .then((settings) => {
         if (cancelled) return
-        setRibbonPlacement(value === 'ownTab' ? 'ownTab' : 'home')
+        setRibbonPlacement(settings.ribbonPlacement === 'ownTab' ? 'ownTab' : 'home')
+        if (settings.splitPercent != null && Number.isFinite(settings.splitPercent)) {
+          const clamped = Math.min(
+            SPLIT_MAX,
+            Math.max(SPLIT_MIN, Math.round(settings.splitPercent)),
+          )
+          setSplitPercent(clamped)
+          window.localStorage.setItem(SPLIT_STORAGE_KEY, String(clamped))
+        }
       })
       .catch(() => {
-        /* default home */
+        /* defaults */
       })
     return () => {
       cancelled = true
@@ -448,10 +467,7 @@ function App() {
       if (!draggingSplit.current) return
       draggingSplit.current = false
       document.body.classList.remove('is-resizing-split')
-      setSplitPercent((current) => {
-        window.localStorage.setItem(SPLIT_STORAGE_KEY, String(Math.round(current)))
-        return current
-      })
+      setSplitPercent((current) => persistSplitPercent(current))
     }
     window.addEventListener('pointermove', onPointerMove)
     window.addEventListener('pointerup', stopDragging)
@@ -707,8 +723,7 @@ function App() {
             event.currentTarget.setPointerCapture(event.pointerId)
           }}
           onDoubleClick={() => {
-            setSplitPercent(50)
-            window.localStorage.setItem(SPLIT_STORAGE_KEY, '50')
+            setSplitPercent(persistSplitPercent(50))
           }}
           onKeyDown={(event) => {
             let next: number | null = null
@@ -718,9 +733,7 @@ function App() {
             if (event.key === 'End') next = SPLIT_MAX
             if (next === null) return
             event.preventDefault()
-            const clamped = Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, next))
-            setSplitPercent(clamped)
-            window.localStorage.setItem(SPLIT_STORAGE_KEY, String(Math.round(clamped)))
+            setSplitPercent(persistSplitPercent(next))
           }}
         />
 

@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/mdoc-desktop/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: apps/mdoc-desktop
+        run: npm ci
+
+      - name: Build Word add-in
+        shell: pwsh
+        run: ./apps/mdoc-word-addin/build.ps1
+
+      - name: Build Tauri NSIS installer
+        working-directory: apps/mdoc-desktop
+        run: npm run tauri -- build
+
+      - name: Upload installer to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/release/bundle/nsis/MDoc_*_x64-setup.exe
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

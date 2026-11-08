@@ -1,35 +1,31 @@
 @echo off
 setlocal EnableExtensions
-cd /d D:\Projekte\mdword
+cd /d "%~dp0"
 
-echo === 1/3 Add-in registrieren (HKCU) ===
-call apps\mdoc-word-addin\finish-hang-recovery.cmd
-if errorlevel 1 echo WARNUNG: Registrierung fehlgeschlagen (DLL fehlt?)
-
-echo.
-echo === 2/3 Word-Add-in bundlen ===
-powershell -NoProfile -ExecutionPolicy Bypass -File apps\mdoc-word-addin\build.ps1
+echo === 1/2 Build Word add-in ===
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0apps\mdoc-word-addin\build.ps1"
 if errorlevel 1 (
-  echo FEHLER: build.ps1
+  echo ERROR: build.ps1 failed
   exit /b 1
 )
 
 echo.
-echo === 3/3 CLI + Tauri NSIS-Installer ===
-cd apps\mdoc-desktop
-call npm run bundle:cli
-if errorlevel 1 (
-  echo FEHLER: bundle:cli
-  exit /b 1
-)
+echo === 2/2 Build Tauri NSIS installer ===
+cd /d "%~dp0apps\mdoc-desktop"
 call npm run tauri -- build
 if errorlevel 1 (
-  echo FEHLER: tauri build
+  echo ERROR: tauri build failed
   exit /b 1
 )
 
 echo.
-echo Fertig. Neuer Installer:
-dir /b ..\..\target\release\bundle\nsis\*x64-setup.exe 2>nul
-dir /b src-tauri\target\release\bundle\nsis\*x64-setup.exe 2>nul
+echo Done. Installer:
+set "NSIS=%~dp0target\release\bundle\nsis"
+if exist "%NSIS%\*x64-setup.exe" (
+  dir /b "%NSIS%\*x64-setup.exe"
+  echo Path: %NSIS%
+) else (
+  echo WARNING: No setup.exe found under %NSIS%
+)
 echo.
+exit /b 0

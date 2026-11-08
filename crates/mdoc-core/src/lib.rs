@@ -5,6 +5,7 @@ pub mod markdown;
 pub mod markdown_writer;
 pub mod model;
 pub mod paths;
+pub mod settings;
 pub mod style;
 pub mod template;
 
@@ -13,11 +14,14 @@ pub use error::{Error, Result};
 pub use model::{Block, Document, Inline, ListItem, TableAlignment, TableCell};
 pub use paths::{
     TemplateFileFingerprint, config_dir, ensure_shared_template_styles_cache,
-    load_ribbon_placement, load_shared_template_path, load_ui_language, normal_dotm_path,
-    resolve_template, ribbon_placement_path, save_ribbon_placement, save_shared_template_path,
-    save_ui_language, shared_style_profile_path, shared_template_numbering_path,
-    shared_template_path_file, shared_template_styles_meta_path, shared_template_styles_path,
-    ui_language_path,
+    load_shared_template_path, normal_dotm_path, resolve_template, ribbon_placement_path,
+    save_shared_template_path, settings_path, shared_style_profile_path,
+    shared_template_numbering_path, shared_template_path_file, shared_template_styles_meta_path,
+    shared_template_styles_path, ui_language_path,
+};
+pub use settings::{
+    AppSettings, load_app_settings, load_ribbon_placement, load_split_percent, load_ui_language,
+    save_app_settings, save_ribbon_placement, save_split_percent, save_ui_language,
 };
 pub use style::{
     CharacterStyleMap, ParagraphStyleMap, StyleProfile, migrate_legacy_english_ids,

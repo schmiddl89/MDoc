@@ -78,8 +78,8 @@ namespace MdocWordAddIn
         {
             try
             {
-                var placement = ReadRibbonPlacement();
-                var lang = UiText.Language;
+                var placement = AppSettings.RibbonPlacement;
+                var lang = AppSettings.UiLanguage;
                 string resource;
                 if (placement == "ownTab")
                 {
@@ -114,47 +114,6 @@ namespace MdocWordAddIn
             {
                 Log("GetCustomUI failed: " + ex);
                 return string.Empty;
-            }
-        }
-
-        /// <summary>
-        /// Ribbon-Platzierung aus %APPDATA%\MDoc\ribbon-placement:
-        ///   home   = Gruppe unter Registerkarte Start (Standard)
-        ///   ownTab = eigene Registerkarte „MDoc“
-        /// </summary>
-        private static string ReadRibbonPlacement()
-        {
-            try
-            {
-                var path = Path.Combine(
-                    InstallLayout.ResolveConfigDirectory(),
-                    "ribbon-placement");
-                if (!File.Exists(path))
-                {
-                    return "home";
-                }
-
-                var raw = File.ReadAllText(path).Trim();
-                if (raw.Length == 0)
-                {
-                    return "home";
-                }
-
-                // Nur erste Zeile / erstes Token auswerten.
-                var token = raw.Split(new[] { '\r', '\n', ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)[0]
-                    .Trim()
-                    .ToLowerInvariant();
-                if (token == "owntab" || token == "tab" || token == "mdoc" || token == "mdword")
-                {
-                    return "ownTab";
-                }
-
-                return "home";
-            }
-            catch (Exception ex)
-            {
-                Log("ReadRibbonPlacement: " + ex.Message);
-                return "home";
             }
         }
 

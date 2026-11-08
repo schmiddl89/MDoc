@@ -2031,7 +2031,7 @@ dependencies = [
 
 [[package]]
 name = "mdoc-cli"
-version = "1.0.1"
+version = "1.0.3"
 dependencies = [
  "anyhow",
  "clap",
@@ -2041,7 +2041,7 @@ dependencies = [
 
 [[package]]
 name = "mdoc-core"
-version = "1.0.1"
+version = "1.0.3"
 dependencies = [
  "comrak",
  "docx-rs",
@@ -2054,7 +2054,7 @@ dependencies = [
 
 [[package]]
 name = "mdoc-desktop"
-version = "1.0.1"
+version = "1.0.3"
 dependencies = [
  "log",
  "mdoc-core",

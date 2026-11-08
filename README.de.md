@@ -8,6 +8,14 @@ English: [README.md](README.md)
 
 Lizenz: [MIT](LICENSE-MIT) OR [Apache-2.0](LICENSE-APACHE).
 
+## Download
+
+Windows-Installer (NSIS, benutzerbezogen): siehe
+[GitHub Releases](https://github.com/schmiddl89/MDoc/releases).
+
+Der Installer ist noch nicht codesigniert — SmartScreen kann beim ersten Start
+warnen. Bevorzuge das neueste Asset `MDoc_*_x64-setup.exe`.
+
 ## Status
 
 MDoc ist eine **öffentliche Beta**. Funktionen und Dateiformate können sich
@@ -28,7 +36,8 @@ Feedback und Fehlerberichte sind willkommen (GitHub Issues).
 - `apps/mdoc-word-addin`: Word-Ribbon (Einfügen / Kopieren / Mapping / Editor)
 
 Konfigurationsdaten liegen unter `%APPDATA%\MDoc` (einmalige Migration von
-`mdoc` / `mdword`, falls vorhanden).
+`mdoc` / `mdword`, falls vorhanden). Gemeinsame Einstellungen
+(`uiLanguage`, `ribbonPlacement`, `splitPercent`) stehen in `settings.json`.
 
 ## Vorlagen und Style-Mapping
 
@@ -59,6 +68,15 @@ cd apps/mdoc-desktop
 npm install
 npm run tauri dev
 ```
+
+Lokalen NSIS-Installer bauen (Repo-Root; braucht Rust, Node und den .NET-4-C#-Compiler):
+
+```powershell
+.\rebuild-installer.cmd
+```
+
+Die Setup-Datei liegt unter `target\release\bundle\nsis\`. Tags der Form `v*`
+(z. B. `v1.0.3`) erzeugen den Installer auch über GitHub Actions.
 
 Icons aus `inputs/icon.svg` neu erzeugen:
 

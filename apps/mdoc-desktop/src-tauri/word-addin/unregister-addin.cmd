@@ -8,5 +8,5 @@ reg delete "HKCU\Software\Classes\%PROGID%" /f >nul 2>&1
 reg delete "HKCU\Software\Microsoft\Office\Word\Addins\%LEGACY%" /f >nul 2>&1
 reg delete "HKCU\Software\Classes\%LEGACY%" /f >nul 2>&1
 reg delete "HKCU\Software\Classes\CLSID\%CLSID%" /f >nul 2>&1
-echo MDoc Word-Add-in deregistriert.
+echo MDoc Word add-in unregistered.
 exit /b 0

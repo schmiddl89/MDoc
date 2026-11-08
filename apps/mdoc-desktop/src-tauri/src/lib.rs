@@ -57,6 +57,15 @@ struct LaunchOptions {
     document_path: Option<PathBuf>,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AppSettingsDto {
+    ui_language: Option<String>,
+    ribbon_placement: String,
+    /// `None` until the user has saved a split once (keeps localStorage as interim source).
+    split_percent: Option<u8>,
+}
+
 #[tauri::command]
 async fn analyze_markdown(markdown: String) -> Result<DocumentStats, String> {
     tauri::async_runtime::spawn_blocking(move || {
@@ -76,7 +85,7 @@ async fn analyze_markdown(markdown: String) -> Result<DocumentStats, String> {
 async fn read_markdown(path: PathBuf) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || {
         fs::read_to_string(&path)
-            .map_err(|error| format!("{} konnte nicht gelesen werden: {error}", path.display()))
+            .map_err(|error| format!("Could not read {}: {error}", path.display()))
     })
     .await
     .map_err(|error| error.to_string())?
@@ -86,10 +95,7 @@ async fn read_markdown(path: PathBuf) -> Result<String, String> {
 async fn write_markdown(path: PathBuf, markdown: String) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || {
         fs::write(&path, markdown).map_err(|error| {
-            format!(
-                "{} konnte nicht gespeichert werden: {error}",
-                path.display()
-            )
+            format!("Could not write {}: {error}", path.display())
         })
     })
     .await
@@ -131,7 +137,7 @@ fn get_app_paths() -> AppPaths {
 async fn save_shared_template_path(path: Option<PathBuf>) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || {
         mdoc_core::save_shared_template_path(path.as_deref()).map_err(|error| {
-            format!("Gemeinsamer Vorlagen-Pfad konnte nicht gespeichert werden: {error}")
+            format!("Shared template path could not be saved: {error}")
         })
     })
     .await
@@ -143,7 +149,7 @@ async fn save_shared_template_path(path: Option<PathBuf>) -> Result<(), String> 
 async fn ensure_shared_template_styles_cache() -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(|| {
         mdoc_core::ensure_shared_template_styles_cache().map_err(|error| {
-            format!("Styles-Cache der Vorlage konnte nicht aktualisiert werden: {error}")
+            format!("Template styles cache could not be updated: {error}")
         })
     })
     .await
@@ -172,39 +178,48 @@ fn get_launch_options() -> LaunchOptions {
 #[tauri::command]
 fn open_guide_window() -> Result<(), String> {
     let exe = std::env::current_exe()
-        .map_err(|error| format!("Executable-Pfad unbekannt: {error}"))?;
+        .map_err(|error| format!("Unknown executable path: {error}"))?;
     Command::new(exe)
         .arg("--guide")
         .spawn()
-        .map_err(|error| format!("Hilfe-Fenster konnte nicht gestartet werden: {error}"))?;
+        .map_err(|error| format!("Could not open help window: {error}"))?;
     Ok(())
 }
 
-/// UI-Sprache aus `%APPDATA%\MDoc\ui-language` (`de` / `en`).
+/// Zentrale Settings aus `%APPDATA%\MDoc\settings.json` (inkl. Legacy-Migration).
 #[tauri::command]
-fn get_ui_language() -> Option<String> {
-    mdoc_core::load_ui_language()
+fn get_app_settings() -> AppSettingsDto {
+    let settings = mdoc_core::load_app_settings();
+    AppSettingsDto {
+        ui_language: settings.resolved_ui_language().map(str::to_string),
+        ribbon_placement: settings.resolved_ribbon_placement().to_string(),
+        split_percent: settings
+            .split_percent
+            .map(|value| value.clamp(20, 80)),
+    }
 }
 
 /// Speichert die UI-Sprache gemeinsam für Editor und Word-Add-in.
 #[tauri::command]
 fn set_ui_language(lang: String) -> Result<(), String> {
     mdoc_core::save_ui_language(&lang).map_err(|error| {
-        format!("UI-Sprache konnte nicht gespeichert werden: {error}")
+        format!("UI language could not be saved: {error}")
     })
-}
-
-/// Ribbon-Platzierung aus `%APPDATA%\MDoc\ribbon-placement` (`home` / `ownTab`).
-#[tauri::command]
-fn get_ribbon_placement() -> String {
-    mdoc_core::load_ribbon_placement().unwrap_or_else(|| "home".to_string())
 }
 
 /// Speichert die Ribbon-Platzierung; Word muss neu gestartet werden.
 #[tauri::command]
 fn set_ribbon_placement(placement: String) -> Result<(), String> {
     mdoc_core::save_ribbon_placement(&placement).map_err(|error| {
-        format!("Ribbon-Platzierung konnte nicht gespeichert werden: {error}")
+        format!("Ribbon placement could not be saved: {error}")
+    })
+}
+
+/// Speichert den Split-Anteil Editor/Vorschau.
+#[tauri::command]
+fn set_split_percent(percent: u8) -> Result<(), String> {
+    mdoc_core::save_split_percent(percent).map_err(|error| {
+        format!("Split percent could not be saved: {error}")
     })
 }
 
@@ -242,18 +257,13 @@ async fn save_shared_style_profile(
         let path = mdoc_core::shared_style_profile_path();
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).map_err(|error| {
-                format!(
-                    "Konfigurationsordner konnte nicht angelegt werden: {error}"
-                )
+                format!("Could not create config directory: {error}")
             })?;
         }
         let json = serde_json::to_string_pretty(&profile)
-            .map_err(|error| format!("Style-Profil konnte nicht serialisiert werden: {error}"))?;
+            .map_err(|error| format!("Could not serialize style profile: {error}"))?;
         fs::write(&path, json).map_err(|error| {
-            format!(
-                "{} konnte nicht gespeichert werden: {error}",
-                path.display()
-            )
+            format!("Could not write {}: {error}", path.display())
         })?;
         Ok(path)
     })
@@ -341,9 +351,9 @@ fn resolve_style_profile(
 
 fn load_style_profile(path: &PathBuf) -> Result<mdoc_core::StyleProfile, String> {
     let json = fs::read_to_string(path)
-        .map_err(|error| format!("{} konnte nicht gelesen werden: {error}", path.display()))?;
+        .map_err(|error| format!("Could not read {}: {error}", path.display()))?;
     let profile: mdoc_core::StyleProfile = serde_json::from_str(&json)
-        .map_err(|error| format!("{} ist kein gültiges Style-Profil: {error}", path.display()))?;
+        .map_err(|error| format!("{} is not a valid style profile: {error}", path.display()))?;
     Ok(mdoc_core::migrate_legacy_english_ids(profile))
 }
 
@@ -398,10 +408,10 @@ pub fn run() {
             get_app_paths,
             get_launch_options,
             open_guide_window,
-            get_ui_language,
+            get_app_settings,
             set_ui_language,
-            get_ribbon_placement,
             set_ribbon_placement,
+            set_split_percent,
             accept_window_close,
             load_shared_style_profile,
             save_shared_style_profile,

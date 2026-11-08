@@ -15,6 +15,12 @@ import { en, type MessageKey } from './en'
 
 export type Locale = 'de' | 'en'
 
+export interface AppSettingsDto {
+  uiLanguage: string | null
+  ribbonPlacement: string
+  splitPercent: number | null
+}
+
 const STORAGE_KEY = 'mdoc.uiLanguage'
 const dicts: Record<Locale, Record<MessageKey, string>> = { de, en }
 
@@ -85,10 +91,10 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       return
     }
     let cancelled = false
-    void invoke<string | null>('get_ui_language')
-      .then((value) => {
+    void invoke<AppSettingsDto>('get_app_settings')
+      .then((settings) => {
         if (cancelled) return
-        const normalized = value?.trim().toLowerCase()
+        const normalized = settings.uiLanguage?.trim().toLowerCase()
         if (normalized === 'de' || normalized === 'en') {
           setLocaleState(normalized)
           writeStoredLocale(normalized)

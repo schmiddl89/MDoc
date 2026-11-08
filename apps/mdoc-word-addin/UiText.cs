@@ -1,27 +1,14 @@
-using System;
-using System.IO;
-
 namespace MdocWordAddIn
 {
     /// <summary>
-    /// UI-Sprache aus %APPDATA%\MDoc\ui-language (gemeinsam mit dem Desktop-Editor).
-    /// Fallback: en. Ribbon-Labels brauchen einen Word-Neustart nach Wechsel.
+    /// UI strings for the current language from AppSettings (settings.json).
+    /// Ribbon labels require a Word restart after language changes.
     /// </summary>
     internal static class UiText
     {
-        private static string _lang;
-
         internal static string Language
         {
-            get
-            {
-                if (_lang == null)
-                {
-                    _lang = ReadUiLanguage();
-                }
-
-                return _lang;
-            }
+            get { return AppSettings.UiLanguage; }
         }
 
         internal static bool IsGerman
@@ -32,40 +19,6 @@ namespace MdocWordAddIn
         internal static string T(string german, string english)
         {
             return IsGerman ? german : english;
-        }
-
-        internal static string ReadUiLanguage()
-        {
-            try
-            {
-                var path = Path.Combine(
-                    InstallLayout.ResolveConfigDirectory(),
-                    "ui-language");
-                if (!File.Exists(path))
-                {
-                    return "en";
-                }
-
-                var raw = File.ReadAllText(path).Trim();
-                if (raw.Length == 0)
-                {
-                    return "en";
-                }
-
-                var token = raw.Split(new[] { '\r', '\n', ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)[0]
-                    .Trim()
-                    .ToLowerInvariant();
-                if (token == "de" || token.StartsWith("de-", StringComparison.Ordinal))
-                {
-                    return "de";
-                }
-
-                return "en";
-            }
-            catch
-            {
-                return "en";
-            }
         }
 
         // --- Shared messages ---

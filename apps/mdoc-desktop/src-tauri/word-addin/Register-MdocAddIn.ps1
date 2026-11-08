@@ -8,7 +8,8 @@ $ErrorActionPreference = 'Stop'
 $clsid = '{B7E4A912-6C31-4F8D-9E2A-55D0C1B3A874}'
 $progId = 'mdoc.Connect'
 $legacyProgId = 'mdword.Connect'
-$assemblyName = 'MdocWordAddIn, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'
+$assemblyVersion = '1.0.3.0'
+$assemblyName = "MdocWordAddIn, Version=$assemblyVersion, Culture=neutral, PublicKeyToken=null"
 $className = 'MdocWordAddIn.Connect'
 $netCategory = '{62C8FE65-4EBB-45e7-B440-6E39B2CDBF29}'
 
@@ -21,7 +22,7 @@ function Get-DefaultDllPath {
   if (Test-Path $beside) { return (Resolve-Path $beside).Path }
   $bundle = Join-Path $PSScriptRoot '..\mdoc-desktop\src-tauri\word-addin\MdocWordAddIn.dll'
   if (Test-Path $bundle) { return (Resolve-Path $bundle).Path }
-  throw 'MdocWordAddIn.dll nicht gefunden.'
+  throw 'MdocWordAddIn.dll not found.'
 }
 
 function ConvertTo-FileUri([string]$path) {
@@ -41,19 +42,18 @@ function Remove-MdocRegistration {
     if (Test-Path $disabled) {
       Get-ItemProperty $disabled -ErrorAction SilentlyContinue |
         Select-Object -ExpandProperty PSObject -ErrorAction SilentlyContinue | Out-Null
-      # Binary disabled blobs cannot be reliably filtered; clear known empty tree only if sole purpose is mdoc.
     }
   }
 }
 
 if ($Unregister) {
   Remove-MdocRegistration
-  Write-Host 'MDoc Word-Add-in deregistriert (HKCU).'
+  Write-Host 'MDoc Word add-in unregistered (HKCU).'
   exit 0
 }
 
 if (-not $DllPath) { $DllPath = Get-DefaultDllPath }
-if (-not (Test-Path $DllPath)) { throw "DLL fehlt: $DllPath" }
+if (-not (Test-Path $DllPath)) { throw "DLL missing: $DllPath" }
 
 $codeBase = ConvertTo-FileUri $DllPath
 Remove-MdocRegistration
@@ -70,7 +70,7 @@ New-ItemProperty -Path $inproc -Name 'Assembly' -Value $assemblyName -PropertyTy
 New-ItemProperty -Path $inproc -Name 'RuntimeVersion' -Value 'v4.0.30319' -PropertyType String -Force | Out-Null
 New-ItemProperty -Path $inproc -Name 'CodeBase' -Value $codeBase -PropertyType String -Force | Out-Null
 
-$inprocVer = "$inproc\1.0.0.0"
+$inprocVer = "$inproc\$assemblyVersion"
 New-Item -Path $inprocVer -Force | Out-Null
 Set-ItemProperty -Path $inprocVer -Name '(default)' -Value 'mscoree.dll'
 New-ItemProperty -Path $inprocVer -Name 'ThreadingModel' -Value 'Both' -PropertyType String -Force | Out-Null
@@ -91,11 +91,11 @@ Set-ItemProperty -Path "HKCU:\Software\Classes\$progId\CLSID" -Name '(default)' 
 
 $addin = "HKCU:\Software\Microsoft\Office\Word\Addins\$progId"
 New-Item -Path $addin -Force | Out-Null
-New-ItemProperty -Path $addin -Name 'Description' -Value 'MDoc Markdown-Integration' -PropertyType String -Force | Out-Null
+New-ItemProperty -Path $addin -Name 'Description' -Value 'MDoc Markdown integration' -PropertyType String -Force | Out-Null
 New-ItemProperty -Path $addin -Name 'FriendlyName' -Value 'MDoc' -PropertyType String -Force | Out-Null
 New-ItemProperty -Path $addin -Name 'LoadBehavior' -Value 3 -PropertyType DWord -Force | Out-Null
 
-# Soft-disable-Einträge von Word entfernen (alle Office-Versionen).
+# Clear Word soft-disable entries (all Office versions).
 Get-ChildItem 'HKCU:\Software\Microsoft\Office' -ErrorAction SilentlyContinue | ForEach-Object {
   $resiliency = Join-Path $_.PSPath 'Word\Resiliency'
   if (Test-Path $resiliency) {
@@ -104,7 +104,7 @@ Get-ChildItem 'HKCU:\Software\Microsoft\Office' -ErrorAction SilentlyContinue | 
   }
 }
 
-Write-Host "MDoc Word-Add-in registriert."
+Write-Host 'MDoc Word add-in registered.'
 Write-Host "  DLL:      $DllPath"
 Write-Host "  CodeBase: $codeBase"
-Write-Host "  LoadBehavior=3 - bitte Word vollstaendig beenden und neu starten."
+Write-Host '  LoadBehavior=3 ? quit Word completely and restart.'

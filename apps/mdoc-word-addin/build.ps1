@@ -2,13 +2,13 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $outDir = Join-Path $root 'bin\Release'
 $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
-if (-not (Test-Path $csc)) { throw "csc.exe nicht gefunden: $csc" }
+if (-not (Test-Path $csc)) { throw "csc.exe not found: $csc" }
 
 $ext = Join-Path $root 'lib\Extensibility.dll'
 $office = Join-Path $root 'lib\Office.dll'
 $word = Join-Path $root 'packages\Microsoft.Office.Interop.Word.15.0.4797.1004\lib\net20\Microsoft.Office.Interop.Word.dll'
 foreach ($req in @($ext, $office, $word)) {
-  if (-not (Test-Path $req)) { throw "Fehlende Referenz: $req" }
+  if (-not (Test-Path $req)) { throw "Missing reference: $req" }
 }
 
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
@@ -19,6 +19,7 @@ $sources = @(
   (Join-Path $root 'DocxFlatOpc.cs'),
   (Join-Path $root 'TemplateStylesCache.cs'),
   (Join-Path $root 'InstallLayout.cs'),
+  (Join-Path $root 'AppSettings.cs'),
   (Join-Path $root 'UiText.cs'),
   (Join-Path $root 'WordMarkdownBridge.cs'),
   (Join-Path $root 'Properties\AssemblyInfo.cs')
@@ -28,7 +29,7 @@ $compression = Join-Path $netFx 'System.IO.Compression.dll'
 $compressionFs = Join-Path $netFx 'System.IO.Compression.FileSystem.dll'
 $systemXml = Join-Path $netFx 'System.Xml.dll'
 foreach ($req in @($compression, $compressionFs, $systemXml)) {
-  if (-not (Test-Path $req)) { throw "Fehlende Referenz: $req" }
+  if (-not (Test-Path $req)) { throw "Missing reference: $req" }
 }
 $ribbonHome = Join-Path $root 'Ribbon.Home.xml'
 $ribbonOwnTab = Join-Path $root 'Ribbon.OwnTab.xml'
@@ -68,6 +69,6 @@ foreach ($folder in @('MDoc', 'mdoc', 'mdword')) {
     Copy-Item $dll (Join-Path $installed 'MdocWordAddIn.dll') -Force
     Write-Host "Copied to $installed"
   } catch {
-    Write-Warning "Konnte nicht nach $installed kopieren (Word hält die DLL?). Word beenden und erneut bauen/registrieren. $_"
+    Write-Warning "Could not copy to $installed (Word locking the DLL?). Quit Word and rebuild/register. $_"
   }
 }

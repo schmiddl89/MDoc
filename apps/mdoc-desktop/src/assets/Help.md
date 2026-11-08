@@ -45,9 +45,9 @@ In the editor menu (☰), use **Ribbon → Home / Tab**:
 | **Home** | **MDoc** group on Word’s **Home** tab (default) |
 | **Tab** | Dedicated **MDoc** tab |
 
-Restart Word completely after changing. The setting is stored in `%APPDATA%\MDoc\ribbon-placement`.
+Restart Word completely after changing. Preferences are stored in `%APPDATA%\MDoc\settings.json`.
 
-Language and Help are also in the menu (**Language → DE / EN**). Language is stored in `%APPDATA%\MDoc\ui-language` and shared with the Word add-in (restart Word after changing).
+Language and Help are also in the menu (**Language → DE / EN**). Language is shared with the Word add-in via `settings.json` (restart Word after changing).
 
 ## Tips
 
