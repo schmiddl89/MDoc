@@ -1,0 +1,34 @@
+# Rust
+/target/
+
+# IDE / OS
+/.idea/
+/.vscode/
+*.user
+*.suo
+*.pdb
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Generated / test output
+/artifacts/
+/test-output/
+
+# Frontend
+node_modules/
+dist/
+
+# Local Tauri/runtime binaries (build via cargo / build.ps1)
+*.exe
+/apps/mdoc-desktop/src-tauri/word-addin/MdocWordAddIn.dll
+/apps/mdoc-word-addin/bin/
+**/obj/
+
+# Branding extract / platform icon extras / raw design sources
+/inputs/_orbitron_extract/
+/inputs/*.ai
+/inputs/orbitron.zip
+/apps/mdoc-desktop/src-tauri/icons/android/
+/apps/mdoc-desktop/src-tauri/icons/ios/

@@ -1,0 +1,30 @@
+[workspace]
+members = [
+    "apps/mdoc-desktop/src-tauri",
+    "crates/mdoc-cli",
+    "crates/mdoc-core",
+]
+resolver = "3"
+
+[workspace.package]
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.93"
+license = "MIT OR Apache-2.0"
+authors = ["Benjamin"]
+
+[workspace.dependencies]
+anyhow = "1.0.100"
+clap = { version = "4.5.50", features = ["derive"] }
+comrak = { version = "0.56.0", default-features = false }
+docx-rs = "0.4.22"
+quick-xml = "0.41.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+thiserror = "2.0.17"
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+strip = "symbols"

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 282.8 300">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #3c3c3b;
+      }
+
+      .cls-2 {
+        fill: #009194;
+      }
+    </style>
+  </defs>
+  <polygon class="cls-2" points="29 150 79 0 129 0 79 150 129 300 79 300 29 150"/>
+  <polygon class="cls-1" points="70 0 20 150 70 300 50 300 0 150 50 0 70 0"/>
+  <polygon class="cls-2" points="251.8 150 201.8 0 151.8 0 201.8 150 151.8 300 201.8 300 251.8 150"/>
+  <polygon class="cls-1" points="212.8 0 262.8 150 212.8 300 232.8 300 282.8 150 232.8 0 212.8 0"/>
+</svg>

@@ -1,0 +1,36 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\CLSID\{B7E4A912-6C31-4F8D-9E2A-55D0C1B3A874}]
+@="mdoc.Connect"
+
+[HKEY_CURRENT_USER\Software\Classes\CLSID\{B7E4A912-6C31-4F8D-9E2A-55D0C1B3A874}\InprocServer32]
+@="mscoree.dll"
+"ThreadingModel"="Both"
+"Class"="MdocWordAddIn.Connect"
+"Assembly"="MdocWordAddIn, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///C:/Users/Benjamin/AppData/Local/MDoc/word-addin/MdocWordAddIn.dll"
+
+[HKEY_CURRENT_USER\Software\Classes\CLSID\{B7E4A912-6C31-4F8D-9E2A-55D0C1B3A874}\InprocServer32\1.0.0.0]
+@="mscoree.dll"
+"ThreadingModel"="Both"
+"Class"="MdocWordAddIn.Connect"
+"Assembly"="MdocWordAddIn, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///C:/Users/Benjamin/AppData/Local/MDoc/word-addin/MdocWordAddIn.dll"
+
+[HKEY_CURRENT_USER\Software\Classes\CLSID\{B7E4A912-6C31-4F8D-9E2A-55D0C1B3A874}\ProgID]
+@="mdoc.Connect"
+
+[HKEY_CURRENT_USER\Software\Classes\CLSID\{B7E4A912-6C31-4F8D-9E2A-55D0C1B3A874}\Implemented Categories\{62C8FE65-4EBB-45e7-B440-6E39B2CDBF29}]
+
+[HKEY_CURRENT_USER\Software\Classes\mdoc.Connect]
+@="MDoc Word Add-in"
+
+[HKEY_CURRENT_USER\Software\Classes\mdoc.Connect\CLSID]
+@="{B7E4A912-6C31-4F8D-9E2A-55D0C1B3A874}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\Office\Word\Addins\mdoc.Connect]
+"Description"="MDoc Markdown-Integration"
+"FriendlyName"="MDoc"
+"LoadBehavior"=dword:00000003

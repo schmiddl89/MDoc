@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <rect width="300" height="300" rx="48" ry="48" fill="#3c3c3b"/>
+  <!-- Markenzeichen aus logo.svg, zentriert -->
+  <g transform="translate(85.5 0)">
+    <polygon fill="#009194" points="29 150 79 0 129 0 79 150 129 300 79 300 29 150"/>
+    <polygon fill="#ffffff" points="70 0 20 150 70 300 50 300 0 150 50 0 70 0"/>
+  </g>
+</svg>

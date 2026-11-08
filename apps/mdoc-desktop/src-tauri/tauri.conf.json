@@ -1,0 +1,66 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "MDoc",
+  "version": "1.0.0",
+  "identifier": "de.mdoc.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build && npm run bundle:cli"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "MDoc",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "shortDescription": "Markdown und Microsoft Word zusammenbringen",
+    "longDescription": "Markdown-Editor mit DOCX-Export und geplanter Microsoft-Word-Integration.",
+    "fileAssociations": [
+      {
+        "ext": [
+          "md",
+          "markdown",
+          "mdown"
+        ],
+        "name": "MDoc.markdown",
+        "description": "Markdown-Dokument",
+        "role": "Editor"
+      }
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "word-addin/*",
+      "mdoc-cli.exe"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "template": "./windows/installer.nsi",
+        "installerHooks": "./windows/nsis-hooks.nsh"
+      }
+    }
+  }
+}
